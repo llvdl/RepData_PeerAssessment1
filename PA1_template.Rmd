@@ -2,7 +2,7 @@
 
 
 ## Loading and preprocessing the data
-The load the data the archive is unzipped and then contained csv file is read. The date entities are parsed as date objects. Some measurements are incomplete, so a separate set (`activityNonNa`) is created that only has complete measurements (i.e. steps is not NA).
+To load the data the archive is unzipped and then contained csv file is read. The date entities are parsed as date objects. Some measurements are incomplete, so a separate set (`measurementsComplete`) is created that only has complete measurements (i.e. steps is not NA).
 
 ```{r}
 unzip('activity.zip')
