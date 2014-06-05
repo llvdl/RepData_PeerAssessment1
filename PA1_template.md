@@ -2,7 +2,7 @@
 
 
 ## Loading and preprocessing the data
-The load the data the archive is unzipped and then contained csv file is read. The date entities are parsed as date objects. Some measurements are incomplete, so a separate set (`activityNonNa`) is created that only has complete measurements (i.e. steps is not NA).
+To load the data the archive is unzipped and then contained csv file is read. The date entities are parsed as date objects. Some measurements are incomplete, so a separate set (`measurementsComplete`) is created that only has complete measurements (i.e. steps is not NA).
 
 
 ```r
@@ -39,25 +39,24 @@ From this list **the mean and median of total steps per day** can be calculated:
 
 ```r
 meanStepsPerDay <- mean(totalStepsPerDay)
-meanStepsPerDay
-```
-
-```
-## [1] 10766
-```
-
-
-```r
 medianStepsPerDay <- median(totalStepsPerDay)
-medianStepsPerDay
+list(
+    mean_steps_per_day=meanStepsPerDay,
+    median_steps_per_day=medianStepsPerDay
+)
 ```
 
 ```
+## $mean_steps_per_day
+## [1] 10766
+## 
+## $median_steps_per_day
 ## 2012-11-12 
 ##      10765
 ```
 
 ## What is the average daily activity pattern?
+For the average daily activity pattern we look at the mean of the steps measured by interval.
 
 
 ```r
@@ -68,61 +67,36 @@ intervals <- names(meansByInterval)
 plot(x=intervals, meansByInterval, type='l')
 ```
 
-![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5.png) 
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
 
-The maximum mean is
-
-```r
-max(meansByInterval)
-```
-
-```
-## [1] 206.2
-```
-
-The interval with corresponding to the maximum mean is:
-
-
-```r
-intervals[meansByInterval == max(meansByInterval)]
-```
-
-```
-## [1] "835"
-```
-
-## Imputing missing values
-Some measurements are incomplete. There should only be missings steps, and no missing values for date or interval:
+The maximum mean is:
 
 
 ```r
 list(
-    incompleteMeasurements=nrow(measurements[!complete.cases(measurements), ]),
-    missingSteps = nrow(measurements[is.na(measurements$steps),]),
-    missingDates = nrow(measurements[is.na(measurements$date),]),
-    missingInterval = nrow(measurements[is.na(measurements$interval),])
+    maximum_mean=max(meansByInterval),
+    interval_with_maximum_mean=intervals[meansByInterval == max(meansByInterval)]
 )
 ```
 
 ```
-## $incompleteMeasurements
-## [1] 2304
+## $maximum_mean
+## [1] 206.2
 ## 
-## $missingSteps
-## [1] 2304
-## 
-## $missingDates
-## [1] 0
-## 
-## $missingInterval
-## [1] 0
+## $interval_with_maximum_mean
+## [1] "835"
 ```
+
+## Imputing missing values
+Some measurements are incomplete. There should only be missings steps, and no missing values for date or interval.
+
+
 
 Some missing values are:
 
 
 ```r
-head(measurements[is.na(measurements$steps),])
+head(measurements[is.na(measurements$steps),], n=3)
 ```
 
 ```
@@ -130,9 +104,6 @@ head(measurements[is.na(measurements$steps),])
 ## 1    NA 2012-10-01        0
 ## 2    NA 2012-10-01        5
 ## 3    NA 2012-10-01       10
-## 4    NA 2012-10-01       15
-## 5    NA 2012-10-01       20
-## 6    NA 2012-10-01       25
 ```
 
 The missing values will be imputed with the mean of the step measurements. The following filler function is used:
@@ -152,17 +123,14 @@ Using the filler function a data set with imputed values is created:
 imputed <- measurements
 imputed$steps <- mapply(filler, imputed$steps, imputed$interval, MoreArgs=list(as.list(meansByInterval)))
 
-head(imputed[is.na(measurements$steps), ])
+head(imputed[is.na(measurements$steps), ], n=3)
 ```
 
 ```
-##     steps       date interval
-## 1 1.71698 2012-10-01        0
-## 2 0.33962 2012-10-01        5
-## 3 0.13208 2012-10-01       10
-## 4 0.15094 2012-10-01       15
-## 5 0.07547 2012-10-01       20
-## 6 2.09434 2012-10-01       25
+##    steps       date interval
+## 1 1.7170 2012-10-01        0
+## 2 0.3396 2012-10-01        5
+## 3 0.1321 2012-10-01       10
 ```
 
 ### Testing the impact of imputing data
@@ -183,7 +151,7 @@ hist(totalStepsPerDay, xlab='Total steps per day', main='Without incomplete data
 hist(totalStepsByDayImputed, xlab='Total steps per day', main='With imputed data', ylim=c(0,40))
 ```
 
-![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-12.png) 
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
 
 Only the frequency of the the of the average amount of steps per day is increased, presumably since the missing values where filled with the average amounts. Also, because average values were added, it is expected that the mean will not change and the median may shift a little towards the mean.
 
@@ -193,25 +161,25 @@ meanStepsPerDayImputed <- mean(totalStepsPerDayImputed)
 medianStepsPerDayImputed <- median(totalStepsPerDayImputed)
 
 list(
-    meanStepsPerDay=meanStepsPerDay,
-    meanStepsPerDayImputed=meanStepsPerDayImputed,
-    medianStepsPerDay=medianStepsPerDay,
-    medianStepsPerDayImputed=medianStepsPerDayImputed
+    mean_steps_per_day=meanStepsPerDay,
+    mean_steps_per_day_imputed=meanStepsPerDayImputed,
+    median_steps_per_day=medianStepsPerDay,
+    median_steps_per_day_imputed=medianStepsPerDayImputed
 )
 ```
 
 ```
-## $meanStepsPerDay
+## $mean_steps_per_day
 ## [1] 10766
 ## 
-## $meanStepsPerDayImputed
+## $mean_steps_per_day_imputed
 ## [1] 10766
 ## 
-## $medianStepsPerDay
+## $median_steps_per_day
 ## 2012-11-12 
 ##      10765 
 ## 
-## $medianStepsPerDayImputed
+## $median_steps_per_day_imputed
 ## 2012-11-04 
 ##      10766
 ```
@@ -219,7 +187,7 @@ list(
 I suspect that the impact of imputing missing data means that estimates move toward mean of the non-missing values.
 
 ## Are there differences in activity patterns between weekdays and weekends?
-To see if there are differences between activity patterns in weekdays and weekends, we add a factor to indicate that the measurement was taken in the weekend or on a weekday. Note that the non imputed, complete measurements are used and not the incomplete or imputed list.
+To see if there are differences between activity patterns in weekdays and weekends, a factor is added to indicate that the measurement was taken in the weekend or on a weekday. Note that the non imputed, complete measurements are used and not the incomplete or imputed list.
 
 
 ```r
@@ -227,6 +195,7 @@ inWeekend <- weekdays(measurementsComplete$date) %in% c('Saturday', 'Sunday')
 dayFactor <- factor(ifelse(inWeekend, 'weekend', 'weekday'))
 measurementsComplete$dayFactor <- dayFactor
 
+# show amounts of measurements grouped by day factor
 table(measurementsComplete$dayFactor)
 ```
 
@@ -252,4 +221,4 @@ library(lattice)
 xyplot(steps ~ interval | dayFactor, steps, layout=c(1,2), type='l', ylab='Number of steps')
 ```
 
-![plot of chunk unnamed-chunk-15](figure/unnamed-chunk-15.png) 
+![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13.png) 

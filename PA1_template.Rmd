@@ -34,15 +34,15 @@ From this list **the mean and median of total steps per day** can be calculated:
 
 ```{r}
 meanStepsPerDay <- mean(totalStepsPerDay)
-meanStepsPerDay
-```
-
-```{r}
 medianStepsPerDay <- median(totalStepsPerDay)
-medianStepsPerDay
+list(
+    mean_steps_per_day=meanStepsPerDay,
+    median_steps_per_day=medianStepsPerDay
+)
 ```
 
 ## What is the average daily activity pattern?
+For the average daily activity pattern we look at the mean of the steps measured by interval.
 
 ```{r}
 meansByInterval <- by(measurementsComplete, measurementsComplete$interval, function(m) { 
@@ -52,33 +52,31 @@ intervals <- names(meansByInterval)
 plot(x=intervals, meansByInterval, type='l')
 ```
 
-The maximum mean is
-```{r}
-max(meansByInterval)
-```
-
-The interval with corresponding to the maximum mean is:
-
-```{r}
-intervals[meansByInterval == max(meansByInterval)]
-```
-
-## Imputing missing values
-Some measurements are incomplete. There should only be missings steps, and no missing values for date or interval:
+The maximum mean is:
 
 ```{r}
 list(
-    incompleteMeasurements=nrow(measurements[!complete.cases(measurements), ]),
-    missingSteps = nrow(measurements[is.na(measurements$steps),]),
-    missingDates = nrow(measurements[is.na(measurements$date),]),
-    missingInterval = nrow(measurements[is.na(measurements$interval),])
+    maximum_mean=max(meansByInterval),
+    interval_with_maximum_mean=intervals[meansByInterval == max(meansByInterval)]
+)
+```
+
+## Imputing missing values
+Some measurements are incomplete. There should only be missings steps, and no missing values for date or interval.
+
+```{r echo=FALSE, results='hide'}
+list(
+    incomplete_measurements=nrow(measurements[!complete.cases(measurements), ]),
+    amount_of_missingSteps = nrow(measurements[is.na(measurements$steps),]),
+    amount_of_missingDates = nrow(measurements[is.na(measurements$date),]),
+    missing_interval = nrow(measurements[is.na(measurements$interval),])
 )
 ```
 
 Some missing values are:
 
 ```{r}
-head(measurements[is.na(measurements$steps),])
+head(measurements[is.na(measurements$steps),], n=3)
 ```
 
 The missing values will be imputed with the mean of the step measurements. The following filler function is used:
@@ -96,7 +94,7 @@ Using the filler function a data set with imputed values is created:
 imputed <- measurements
 imputed$steps <- mapply(filler, imputed$steps, imputed$interval, MoreArgs=list(as.list(meansByInterval)))
 
-head(imputed[is.na(measurements$steps), ])
+head(imputed[is.na(measurements$steps), ], n=3)
 ```
 
 ### Testing the impact of imputing data
@@ -123,23 +121,24 @@ meanStepsPerDayImputed <- mean(totalStepsPerDayImputed)
 medianStepsPerDayImputed <- median(totalStepsPerDayImputed)
 
 list(
-    meanStepsPerDay=meanStepsPerDay,
-    meanStepsPerDayImputed=meanStepsPerDayImputed,
-    medianStepsPerDay=medianStepsPerDay,
-    medianStepsPerDayImputed=medianStepsPerDayImputed
+    mean_steps_per_day=meanStepsPerDay,
+    mean_steps_per_day_imputed=meanStepsPerDayImputed,
+    median_steps_per_day=medianStepsPerDay,
+    median_steps_per_day_imputed=medianStepsPerDayImputed
 )
 ```
 
 I suspect that the impact of imputing missing data means that estimates move toward mean of the non-missing values.
 
 ## Are there differences in activity patterns between weekdays and weekends?
-To see if there are differences between activity patterns in weekdays and weekends, we add a factor to indicate that the measurement was taken in the weekend or on a weekday. Note that the non imputed, complete measurements are used and not the incomplete or imputed list.
+To see if there are differences between activity patterns in weekdays and weekends, a factor is added to indicate that the measurement was taken in the weekend or on a weekday. Note that the non imputed, complete measurements are used and not the incomplete or imputed list.
 
 ```{r}
 inWeekend <- weekdays(measurementsComplete$date) %in% c('Saturday', 'Sunday')
 dayFactor <- factor(ifelse(inWeekend, 'weekend', 'weekday'))
 measurementsComplete$dayFactor <- dayFactor
 
+# show amounts of measurements grouped by day factor
 table(measurementsComplete$dayFactor)
 ```
 
